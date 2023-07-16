@@ -1,29 +1,56 @@
 #include <iostream>
-#define X 9
+#define X 9 
 using namespace std;
-int sudoku[X][X]; // {
-//    {4, 0, 2, 4, 0, 9, 2, 5, 0},
-//    {7, 2, 0, 0, 0, 0, 0, 0, 0},
-//    {0, 8, 7, 0, 0, 0, 0, 3, 1},
-//    {0, 0, 3, 0, 1, 0, 5, 8, 0},
-//    {9, 0, 0, 4, 6, 3, 0, 0, 5},
-//    {0, 5, 0, 0, 9, 2, 6, 0, 0},
-//    {1, 3, 0, 0, 0, 0, 2, 5, 0},
-//    {0, 0, 0, 0, 0, 0, 0, 7, 4},
-//    {0, 0, 5, 2, 0, 6, 3, 0, 0}
-// };
-   for(int i=0;i<9;i++){
-      for(int j=0;j<9;j++){
-         cin>>sudoku[i][j];
-      }
-   }
 
-void print_sudoku(){                                //To print the sudoku grid after solve
-   for (int row = 0; row < 9; row++){
-      for (int col = 0; col < 9; col++){
+int sudoku_problem[X][X] 
+   {
+        {5, 3, 0, 0, 7, 0, 0, 0, 0},
+        {6, 0, 0, 1, 9, 5, 0, 0, 0},
+        {0, 9, 8, 0, 0, 0, 0, 6, 0},
+        {8, 0, 0, 0, 6, 0, 0, 0, 3},
+        {4, 0, 0, 8, 0, 3, 0, 0, 1},
+        {7, 0, 0, 0, 2, 0, 0, 0, 6},
+        {0, 6, 0, 0, 0, 0, 2, 8, 0},
+        {0, 0, 0, 4, 1, 9, 0, 0, 5},
+        {0, 0, 0, 0, 8, 0, 0, 7, 9}
+};
+
+
+bool PresentInBox(int row, int col, int num){
+//checking whether num is present in 3x3 box or not
+  for(int i=0; i< X; i++){
+      if(sudoku_problem[3*(row/3)+i/3][3*(col/3)+i%3] == num){
+            return false;       // to check if there is already a entry equal to val in 3*3 submatrices
+        }
+  }
+  return true;
+}
+
+bool PresentInCol(int col, int num){ //checking whether num is present in col or not
+   for(int i=0; i<X; i++){
+        if(sudoku_problem[i][col] == num){
+            return false;        // to check if there is already a entry equal to val in row
+        }
+   }
+   return true;
+}
+
+bool PresentInRow(int row, int num){ //checking whether num is present in row or not
+   for(int i=0; i<X; i++){
+       if(sudoku_problem[row][i] == num){    // to check if there is already a entry equal to val in row
+            return false;
+        }
+   }
+   return true;
+}
+
+
+void sudokuGrid(){ //To print the sudoku sudoku_problem after solve
+   for (int row = 0; row < X; row++){
+      for (int col = 0; col < X; col++){
          if(col == 3 || col == 6)
             cout << " | ";
-         cout << sudoku[row][col] <<" ";
+         cout << sudoku_problem[row][col] <<" ";
       }
       if(row == 2 || row == 5){
          cout << endl;
@@ -34,60 +61,36 @@ void print_sudoku(){                                //To print the sudoku grid a
    }
 }
 
-
-bool isSafe(int row, int col, vector<vector<char> > &A, char val){
-    //char t = to_string(val);
-    
-    for(int i=0; i<9; i++){
-        if(A[i][col] == val){
-            return false;        // to check if there is already a entry equal to val in row
-        }
-        if(A[row][i] == val){.    // to check if there is already a entry equal to val in row
-            return false;
-        }
-        if(A[3*(row/3)+i/3][3*(col/3)+i%3] == val){
-            return false;       // to check if there is already a entry equal to val in 3*3 submatrices
-        }
-    }
-    return true;
+bool ValidPlace(int row, int col, int num){
+   //when item not found in col, row and current 3x3 box
+   return PresentInRow(row, num) && PresentInCol(col, num) && PresentInBox(row,col, num);
 }
 
-bool solve(vector<vector<char> > &A){
-    
-    for(int i=0; i< 9; i++){         // this is to traverse through matrix
-        for(int j=0; j<9; j++){
-            
-            if(A[i][j]=='.'){        // any empty space found
-                for(char val ='1'; val<='9'; val++){
-                                                       // checking for each number from 1 to 9 
-                    if(isSafe(i,j,A,val)){
-                        A[i][j] = val;
-                        bool nextcheck = solve(A);     // recurssive call 
-                        
-                        if(nextcheck){          // after recurssive call checking if solution exist or not
-                            return true;
-                        }else{
-                            A[i][j] = '.';
-                            // backtrack
-                        }
-                    }
-                }
-                return false;
-            }
-        }
-    }
-    return true;
+bool findEmptyPlace(int &row, int &col){ //To know empty location and update row and column
+   for (row = 0; row < X; row++)
+      for (col = 0; col < X; col++)
+         if (sudoku_problem[row][col] == 0) //If 0 then it is empty
+            return true;
+   return false;
 }
 
-
-void solveSudoku(vector<vector<char> > &A) {
-     solve (A);
+bool solveSudoku(){
+   int row, col;
+   if (!findEmptyPlace(row, col))
+      return true; //if  all places are filled then return 1
+   for (int num = 1; num <= 9; num++){ // For valid numbers only 1 - 9
+      if (ValidPlace(row, col, num)){ //checking validation, if yes, put the number in the grid
+         sudoku_problem[row][col] = num;
+         if (solveSudoku()) //recursively go for other rooms in the sudoku_problem
+            return true;
+         sudoku_problem[row][col] = 0; //turning to unassigned space when conditions are not satisfied
+      }
+   }
+   return false;
 }
-
 int main(){
-  if(solveSudoku() == true){
-print_sudoku();
-  }
-else{
-  cout << "No Solution exists!"
+   if (solveSudoku() == true)
+      sudokuGrid();
+   else
+      cout << "No solution exists";
 }
